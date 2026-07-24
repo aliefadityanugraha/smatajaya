@@ -27,6 +27,7 @@ export default defineNuxtConfig({
         { name: 'twitter:title', content: 'SMAN 5 Taruna Brawijaya Jawa Timur' },
         { name: 'twitter:description', content: 'Website resmi SMAN 5 Taruna Brawijaya Jawa Timur - Berkarakter, Berprestasi, Mengabdi untuk Negeri' },
         { name: 'twitter:image', content: 'https://smatarunakediri.sch.id/Smata-Jaya-Foto-Utama-2.png' },
+        { name: 'google-site-verification', content: 'IYptGYPuWvBTcb7HTYihKlu9TkHFjsqj3NEp3c2mHX0' },
       ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/logo-smata.png' },
