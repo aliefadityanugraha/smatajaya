@@ -1,3 +1,5 @@
+# 🏫 SMAN 5 Taruna Brawijaya Jawa Timur
+
 🌐 **Website Resmi**: [https://smatarunakediri.sch.id/](https://smatarunakediri.sch.id/)
 
 ![SMAN 5 Taruna Brawijaya](assets/banner.png)
