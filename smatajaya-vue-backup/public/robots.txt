@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://smatarunakediri.sch.id/sitemap.xml
