@@ -1,0 +1,19 @@
+{
+  "name": "smatajaya-nuxt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@formkit/auto-animate": "^0.10.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "animejs": "^4.5.0",
+    "nuxt": "^3.21.9",
+    "tailwindcss": "^4.3.3"
+  }
+}

@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest-950: #021810;
+  --color-forest-900: #032316;
+  --color-forest-800: #042f1d;
+  --color-forest-700: #053824;
+  --color-forest-600: #064028;
+  --font-sans: "Inter", sans-serif;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.nav-active {
+  border-bottom: 2px solid #eab308;
+  padding-bottom: 2px;
+}
+
+/* Scroll Reveal base */
+.scroll-hidden {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.scroll-visible {
+  animation-fill-mode: forwards;
+}
+
+/* Animation keyframes */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation classes */
+.fade-in-up { animation: fadeInUp 0.6s ease both; }
+.fade-in-left { animation: fadeInLeft 0.6s ease both; }
+.fade-in-right { animation: fadeInRight 0.6s ease both; }
+.fade-in-scale { animation: fadeInScale 0.5s ease both; }
+.page-enter { animation: pageEnter 0.4s ease both; }
+
+/* Hero immediate animations */
+.hero-fade-left { animation: fadeInLeft 0.7s ease 0.1s both; }
+.hero-fade-right { animation: fadeInRight 0.7s ease 0.3s both; }
+
+/* Page transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* Splash animations */
+@keyframes logoScaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes splashTextIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-wait { opacity: 0; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hidden,
+  .hero-fade-left,
+  .hero-fade-right,
+  .hero-wait,
+  .fade-in-up,
+  .fade-in-left,
+  .fade-in-right,
+  .fade-in-scale,
+  .page-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .page-enter-active,
+  .page-leave-active {
+    transition: none !important;
+  }
+}
