@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useDebounceFn } from '@vueuse/shared'
 import { useRegistrationStore } from '~/stores/registration'
 import { GENDER_OPTIONS, RELIGION_OPTIONS } from '~/types'
@@ -9,6 +9,7 @@ const emit = defineEmits<{
 }>()
 
 const registrationStore = useRegistrationStore()
+const isInitialized = ref(false)
 
 const form = ref({
   nik: '',
@@ -59,7 +60,7 @@ const ORPHAN_STATUS_OPTIONS = [
   { value: 'yatim_piatu', label: 'Yatim Piatu (Kedua orang tua meninggal)' },
 ]
 
-onMounted(() => {
+onMounted(async () => {
   if (registrationStore.biodata) {
     const b = registrationStore.biodata
     form.value.nik = b.nik || ''
@@ -92,6 +93,8 @@ onMounted(() => {
     pathForm.value.guardian_name = p.guardian_name || ''
     pathForm.value.guardian_relation = p.guardian_relation || ''
   }
+  await nextTick()
+  isInitialized.value = true
 })
 
 function validate(): boolean {
@@ -223,10 +226,12 @@ const debouncedSavePathData = useDebounceFn(async () => {
 }, 1000)
 
 watch(form, () => {
+  if (!isInitialized.value) return
   debouncedSaveBiodata()
 }, { deep: true })
 
 watch(pathForm, () => {
+  if (!isInitialized.value) return
   if (isBeasiswa.value) {
     debouncedSavePathData()
   }
@@ -315,12 +320,11 @@ watch(pathForm, () => {
 
       <div class="space-y-2">
         <UiLabel for="address">Alamat <span class="text-destructive">*</span></UiLabel>
-        <textarea
+        <UiTextarea
           id="address"
           v-model="form.address"
           placeholder="Alamat lengkap"
           rows="3"
-          class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
         <p v-if="showErrors && errors.address" class="text-xs text-destructive">{{ errors.address }}</p>
       </div>
@@ -415,12 +419,11 @@ watch(pathForm, () => {
 
       <div class="space-y-2">
         <UiLabel for="achievements">Prestasi / Ranking</UiLabel>
-        <textarea
+        <UiTextarea
           id="achievements"
           v-model="pathForm.achievements"
           placeholder="Sebutkan prestasi akademik/non-akademik, ranking di kelas, piagam, dll."
           rows="3"
-          class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
     </div>

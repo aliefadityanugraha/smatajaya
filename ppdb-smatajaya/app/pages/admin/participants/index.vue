@@ -127,22 +127,53 @@ function getStatusConfig(status: string) {
 }
 
 function exportCSV() {
-  const headers = ['No', 'Nama', 'Email', 'Status', 'Fase', 'Tanggal Daftar']
-  const rows = filteredParticipants.value.map((p, i) => [
-    i + 1,
-    p.biodata?.full_name || p.profiles?.full_name || '-',
-    p.profiles?.email || '-',
-    getStatusConfig(p.status).label,
-    p.status === 'accepted' ? (p.final_status === 'lulus' ? 'Lulus' : p.final_status === 'tidak_lulus' ? 'Tidak Lulus' : 'Fase Tes') : '-',
-    formatDate(p.submitted_at || p.created_at),
-  ])
+  // Menyiapkan header untuk semua kolom yang diinginkan
+  const headers = [
+    'No', 'Nama Lengkap', 'Email', 'NIK', 'NISN', 'Tempat Lahir', 'Tgl Lahir', 
+    'JK', 'Agama', 'Alamat', 'No HP', 'Ayah', 'Ibu', 'Sekolah Asal', 'NPSN', 
+    'Status', 'Fase', 'Tanggal Daftar', 'Dokumen KK', 'Dokumen Akta', 'Dokumen Ijazah', 'Dokumen Rapor'
+  ]
 
-  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+  const rows = filteredParticipants.value.map((p, i) => {
+    // Helper untuk mencari link dokumen
+    const getDocUrl = (type: string) => p.documents?.find(d => d.doc_type === type)?.file_url || '-'
+
+    return [
+      i + 1,
+      p.biodata?.full_name || p.profiles?.full_name || '-',
+      p.profiles?.email || '-',
+      p.biodata?.nik || '-',
+      p.biodata?.nisn || '-',
+      p.biodata?.place_of_birth || '-',
+      p.biodata?.date_of_birth || '-',
+      p.biodata?.gender || '-',
+      p.biodata?.religion || '-',
+      p.biodata?.address || '-',
+      p.biodata?.phone_number || '-',
+      p.parent_information?.father_name || '-',
+      p.parent_information?.mother_name || '-',
+      p.schools?.school_name || '-',
+      p.schools?.npsn || '-',
+      getStatusConfig(p.status).label,
+      p.status === 'accepted' ? (p.final_status === 'lulus' ? 'Lulus' : p.final_status === 'tidak_lulus' ? 'Tidak Lulus' : 'Fase Tes') : '-',
+      formatDate(p.submitted_at || p.created_at),
+      getDocUrl('kk'),
+      getDocUrl('akta'),
+      getDocUrl('skl_ijazah'),
+      getDocUrl('rapor')
+    ]
+  })
+
+  // Membuat string CSV dengan quote untuk keamanan
+  const csv = [headers, ...rows]
+    .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `peserta-ppdb-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = `data-lengkap-peserta-${new Date().toISOString().slice(0, 10)}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -282,8 +313,11 @@ function exportPDF() {
         </div>
       </div>
 
-      <div v-else-if="filteredParticipants.length === 0" class="p-12 text-center text-muted-foreground">
-        {{ searchQuery || statusFilter !== 'all' ? 'Tidak ada peserta yang cocok dengan filter.' : 'Belum ada peserta terdaftar.' }}
+      <div v-else-if="filteredParticipants.length === 0" class="p-6">
+        <UiEmptyState
+          title="Tidak ada peserta ditemukan"
+          description="Coba ubah filter atau kriteria pencarian Anda untuk menampilkan lebih banyak data."
+        />
       </div>
 
       <template v-else>

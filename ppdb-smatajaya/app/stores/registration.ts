@@ -3,8 +3,11 @@ import { ref, computed } from 'vue'
 import type { Participant, Biodata, ParentInformation, School, Document, Grade, RegistrationPath, TestSchedule } from '~/types/database'
 
 export const useRegistrationStore = defineStore('registration', () => {
-  const supabase = useSupabaseClient()
   const user = useSupabaseUser()
+
+  function getSupabase() {
+    return useSupabaseClient()
+  }
 
   const participant = ref<Participant | null>(null)
   const biodata = ref<Biodata | null>(null)
@@ -79,7 +82,7 @@ export const useRegistrationStore = defineStore('registration', () => {
   }
 
   async function loadPaths() {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('registration_paths')
       .select('*')
       .eq('is_active', true)
@@ -93,7 +96,7 @@ export const useRegistrationStore = defineStore('registration', () => {
   }
 
   async function loadTestSchedules() {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('test_schedules')
       .select('*')
       .order('test_number', { ascending: true })
@@ -110,7 +113,7 @@ export const useRegistrationStore = defineStore('registration', () => {
 
     await withLoading(async () => {
       try {
-        const { error } = await supabase
+        const { error } = await getSupabase()
           .from('participants')
           .update({
             registration_path_id: pathId,
@@ -132,14 +135,14 @@ export const useRegistrationStore = defineStore('registration', () => {
     if (!user.value) return
 
     await withLoading(async () => {
-      let { data: participantData, error: fetchError } = await supabase
+      let { data: participantData, error: fetchError } = await getSupabase()
         .from('participants')
         .select('*')
         .eq('user_id', user.value.id)
-        .single()
+        .maybeSingle()
 
       if (fetchError || !participantData) {
-        const { data: newParticipant, error: insertError } = await supabase
+        const { data: newParticipant, error: insertError } = await getSupabase()
           .from('participants')
           .insert({ user_id: user.value.id })
           .select()
@@ -159,11 +162,11 @@ export const useRegistrationStore = defineStore('registration', () => {
 
   async function loadAllData(participantId: string) {
     const [biodataRes, parentsRes, schoolRes, docsRes, gradesRes] = await Promise.all([
-      supabase.from('biodata').select('*').eq('participant_id', participantId).maybeSingle(),
-      supabase.from('parent_information').select('*').eq('participant_id', participantId).maybeSingle(),
-      supabase.from('schools').select('*').eq('participant_id', participantId).maybeSingle(),
-      supabase.from('documents').select('*').eq('participant_id', participantId),
-      supabase.from('grades').select('*').eq('participant_id', participantId),
+      getSupabase().from('biodata').select('*').eq('participant_id', participantId).maybeSingle(),
+      getSupabase().from('parent_information').select('*').eq('participant_id', participantId).maybeSingle(),
+      getSupabase().from('schools').select('*').eq('participant_id', participantId).maybeSingle(),
+      getSupabase().from('documents').select('*').eq('participant_id', participantId),
+      getSupabase().from('grades').select('*').eq('participant_id', participantId),
     ])
 
     if (biodataRes.error) {
@@ -203,7 +206,7 @@ export const useRegistrationStore = defineStore('registration', () => {
     if (!participant.value) throw new Error('Participant not loaded')
     const clean = sanitizeData(data as Record<string, unknown>)
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('biodata')
       .upsert(
         { participant_id: participant.value.id, ...clean },
@@ -211,7 +214,7 @@ export const useRegistrationStore = defineStore('registration', () => {
       )
     if (error) throw error
 
-    const { data: saved } = await supabase
+    const { data: saved } = await getSupabase()
       .from('biodata')
       .select('*')
       .eq('participant_id', participant.value.id)
@@ -222,7 +225,7 @@ export const useRegistrationStore = defineStore('registration', () => {
   async function saveParents(data: Partial<ParentInformation>) {
     if (!participant.value) throw new Error('Participant not loaded')
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('parent_information')
       .upsert(
         { participant_id: participant.value.id, ...data },
@@ -230,7 +233,7 @@ export const useRegistrationStore = defineStore('registration', () => {
       )
     if (error) throw error
 
-    const { data: saved } = await supabase
+    const { data: saved } = await getSupabase()
       .from('parent_information')
       .select('*')
       .eq('participant_id', participant.value.id)
@@ -241,7 +244,7 @@ export const useRegistrationStore = defineStore('registration', () => {
   async function saveSchool(data: Partial<School>) {
     if (!participant.value) throw new Error('Participant not loaded')
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from('schools')
       .upsert(
         { participant_id: participant.value.id, ...data },
@@ -249,7 +252,7 @@ export const useRegistrationStore = defineStore('registration', () => {
       )
     if (error) throw error
 
-    const { data: saved } = await supabase
+    const { data: saved } = await getSupabase()
       .from('schools')
       .select('*')
       .eq('participant_id', participant.value.id)
@@ -279,7 +282,7 @@ export const useRegistrationStore = defineStore('registration', () => {
 
     await withLoading(async () => {
       try {
-        const { error } = await supabase
+        const { error } = await getSupabase()
           .from('participants')
           .update({ ...data, updated_at: new Date().toISOString() })
           .eq('id', participant.value.id)
@@ -298,45 +301,42 @@ export const useRegistrationStore = defineStore('registration', () => {
     if (!participant.value) return null
 
     return await withLoading(async () => {
-      try {
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${participant.value.id}/${docType}.${fileExt}`
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${participant.value.id}/${docType}.${fileExt}`
 
-        const { error: uploadError } = await supabase.storage
-          .from('documents')
-          .upload(fileName, file, { upsert: true })
+      const { error: uploadError } = await getSupabase().storage
+        .from('documents')
+        .upload(fileName, file, { upsert: true, contentType: file.type })
 
-        if (uploadError) throw uploadError
-
-        const { data: urlData } = supabase.storage
-          .from('documents')
-          .getPublicUrl(fileName)
-
-        const docData = {
-          participant_id: participant.value.id,
-          doc_type: docType,
-          file_url: urlData.publicUrl,
-          file_name: file.name,
-        }
-
-        const { error } = await supabase
-          .from('documents')
-          .upsert(docData, { onConflict: 'participant_id,doc_type' })
-        if (error) throw error
-
-        const { data: savedDocs } = await supabase
-          .from('documents')
-          .select('*')
-          .eq('participant_id', participant.value.id)
-        documents.value = savedDocs || []
-
-        success('Dokumen berhasil diunggah')
-        return fileName
+      if (uploadError) {
+        console.error('[Storage Upload]', uploadError.message, uploadError)
+        throw uploadError
       }
-      catch (e) {
-        notifyError(`Gagal upload dokumen: ${(e as Error).message}`)
-        return null
+
+      const { data: urlData } = getSupabase().storage
+        .from('documents')
+        .getPublicUrl(fileName)
+
+      const docData = {
+        participant_id: participant.value.id,
+        doc_type: docType,
+        file_url: urlData.publicUrl,
+        file_name: file.name,
       }
+
+      const { error } = await getSupabase()
+        .from('documents')
+        .upsert(docData, { onConflict: 'participant_id,doc_type' })
+      if (error) throw error
+
+      const { data: savedDocs } = await getSupabase()
+        .from('documents')
+        .select('*')
+        .eq('participant_id', participant.value.id)
+      documents.value = savedDocs || []
+
+      success('Dokumen berhasil diunggah')
+      return fileName
     })
   }
 
@@ -351,14 +351,14 @@ export const useRegistrationStore = defineStore('registration', () => {
           )
 
           if (existing) {
-            const { error } = await supabase
+            const { error } = await getSupabase()
               .from('grades')
               .update({ score: g.score, updated_at: new Date().toISOString() })
               .eq('id', existing.id)
             if (error) throw error
           }
           else {
-            const { error } = await supabase
+            const { error } = await getSupabase()
               .from('grades')
               .insert({
                 participant_id: participant.value.id,
@@ -370,7 +370,7 @@ export const useRegistrationStore = defineStore('registration', () => {
           }
         }
 
-        const { data, error } = await supabase
+        const { data, error } = await getSupabase()
           .from('grades')
           .select('*')
           .eq('participant_id', participant.value.id)
@@ -394,7 +394,7 @@ export const useRegistrationStore = defineStore('registration', () => {
     }
 
     await withLoading(async () => {
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('participants')
         .update({ current_step: step, updated_at: new Date().toISOString() })
         .eq('id', participant.value.id)
@@ -412,7 +412,7 @@ export const useRegistrationStore = defineStore('registration', () => {
     if (!participant.value) return
 
     await withLoading(async () => {
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('participants')
         .update({
           status: 'submitted',

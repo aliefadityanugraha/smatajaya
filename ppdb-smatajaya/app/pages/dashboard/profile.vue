@@ -14,10 +14,6 @@ useSeoMeta({
 
 const authStore = useAuthStore()
 
-onMounted(async () => {
-  await authStore.fetchProfile()
-})
-
 const profileForm = ref({ full_name: '' })
 const emailForm = ref({ email: '' })
 const passwordForm = ref({ new_password: '', confirm_password: '' })
@@ -33,7 +29,8 @@ const emailError = ref('')
 const passwordSuccess = ref('')
 const passwordError = ref('')
 
-onMounted(() => {
+onMounted(async () => {
+  await authStore.fetchProfile()
   if (authStore.profile) {
     profileForm.value.full_name = authStore.profile.full_name || ''
     emailForm.value.email = authStore.profile.email || ''

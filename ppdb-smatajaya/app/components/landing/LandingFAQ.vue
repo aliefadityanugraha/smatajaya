@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { ChevronDown } from 'lucide-vue-next'
 
 const faqs = [
   {
@@ -44,29 +45,20 @@ function toggle(index: number) {
           class="bg-card rounded-2xl border overflow-hidden"
         >
           <button
-            class="flex items-center justify-between w-full px-6 py-4 text-left"
+            class="flex items-center justify-between w-full px-6 py-4 text-left hover:bg-muted/50 transition-colors"
             @click="toggle(index)"
           >
             <span class="text-sm font-medium">{{ faq.question }}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="shrink-0 ml-4 transition-transform"
+            <ChevronDown
+              class="shrink-0 ml-4 transition-transform duration-300 ease-in-out"
               :class="openIndex === index ? 'rotate-180' : ''"
-            ><polyline points="6 9 12 15 18 9" /></svg>
+              :size="16"
+            />
           </button>
-          <div
-            v-show="openIndex === index"
-            class="px-6 pb-4"
-          >
-            <p class="text-sm text-muted-foreground">{{ faq.answer }}</p>
+          <div class="overflow-hidden transition-all duration-300 ease-in-out" :style="{ maxHeight: openIndex === index ? '200px' : '0px' }">
+            <div class="px-6 pb-4">
+              <p class="text-sm text-muted-foreground">{{ faq.answer }}</p>
+            </div>
           </div>
         </div>
       </div>

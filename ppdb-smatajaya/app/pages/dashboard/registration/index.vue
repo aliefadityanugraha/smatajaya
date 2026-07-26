@@ -104,8 +104,8 @@ async function handleSubmit() {
 
     <!-- Content -->
     <div class="bg-card rounded-3xl border p-6">
-      <!-- Loading -->
-      <div v-if="registrationStore.loading" class="space-y-4 animate-pulse">
+      <!-- Loading: Hanya tampilkan jika belum ada data peserta sama sekali -->
+      <div v-if="registrationStore.loading && !registrationStore.participant" class="space-y-4 animate-pulse">
         <div class="h-6 w-48 bg-muted rounded" />
         <div class="grid grid-cols-2 gap-4">
           <div v-for="i in 6" :key="i" class="space-y-2">

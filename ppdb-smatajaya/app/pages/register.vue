@@ -23,32 +23,24 @@ const success = ref(false);
 const showErrors = ref(false);
 const errors = ref<Record<string, string>>({});
 
-const isValid = computed(() => {
-  return (
-    form.value.fullName.trim().length > 0 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email) &&
-    form.value.password.length >= 6 &&
-    form.value.password === form.value.confirmPassword
-  );
-});
+// Langkah pendaftaran saat ini (0: Akun, 1: Verifikasi/Selesai)
+const currentStep = ref(0);
 
 function validate(): boolean {
   const e: Record<string, string> = {};
-  if (!form.value.fullName.trim()) e.fullName = "Nama wajib diisi";
+  if (!form.value.fullName.trim()) e.fullName = "Mohon isi nama lengkap Anda dengan benar.";
   if (!form.value.email.trim()) {
-    e.email = "Email wajib diisi";
+    e.email = "Email diperlukan untuk akses pendaftaran.";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-    e.email = "Format email tidak valid";
+    e.email = "Format email tidak sesuai, mohon periksa kembali.";
   }
   if (!form.value.password) {
-    e.password = "Password wajib diisi";
+    e.password = "Buat password yang kuat.";
   } else if (form.value.password.length < 6) {
-    e.password = "Password minimal 6 karakter";
+    e.password = "Password harus terdiri dari minimal 6 karakter.";
   }
-  if (!form.value.confirmPassword) {
-    e.confirmPassword = "Konfirmasi password wajib diisi";
-  } else if (form.value.password !== form.value.confirmPassword) {
-    e.confirmPassword = "Password tidak cocok";
+  if (form.value.password !== form.value.confirmPassword) {
+    e.confirmPassword = "Password konfirmasi tidak cocok.";
   }
   errors.value = e;
   return Object.keys(e).length === 0;
@@ -69,9 +61,10 @@ async function handleRegister() {
   );
 
   if (result.error) {
-    error.value = (result.error as any).message || "Gagal mendaftar";
+    error.value = "Terjadi kendala saat mendaftar, mohon coba beberapa saat lagi.";
   } else {
     success.value = true;
+    currentStep.value = 1;
   }
 
   loading.value = false;
@@ -83,47 +76,24 @@ async function handleRegister() {
     <div class="bg-card rounded-3xl border shadow-2xl p-8">
       <!-- Header -->
       <div class="text-center mb-8">
-        <div class="mx-auto mb-4 flex justify-center">
-          <img
-            src="/logo-tiga.png"
-            alt="Logo"
-            class="h-20 w-20 object-contain"
-          />
-        </div>
-        <h1 class="text-3xl font-bold text-forest-900">Buat Akun Baru</h1>
+        <h1 class="text-3xl font-bold text-forest-900">Pendaftaran</h1>
         <p class="text-sm text-muted-foreground mt-2">
-          Mari bergabung dengan SMAN 5 Taruna Brawijaya
+          Selamat datang di portal PENTAB SMAN 5 Taruna Brawijaya
         </p>
       </div>
 
+      <!-- Stepper -->
+      <UiStepper :steps="['Buat Akun', 'Selesai']" :current-step="currentStep" />
+
       <!-- Success -->
-      <div v-if="success" class="text-center py-4">
-        <div
-          class="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="text-green-600"
-          >
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-        </div>
-        <h3 class="text-lg font-semibold mb-2">Pendaftaran Berhasil!</h3>
-        <p class="text-sm text-muted-foreground mb-4">
-          Silakan cek email Anda untuk verifikasi akun, lalu login.
+      <div v-if="success" class="text-center py-8">
+        <h3 class="text-xl font-bold mb-2">Akun berhasil dibuat!</h3>
+        <p class="text-sm text-muted-foreground mb-6">
+          Silakan cek inbox email Anda untuk verifikasi dan melanjutkan ke tahap pendaftaran berikutnya.
         </p>
         <NuxtLink
           to="/login"
-          class="text-sm font-medium text-primary hover:text-primary/80"
+          class="inline-block bg-forest-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-forest-700"
         >
           Login Sekarang
         </NuxtLink>
@@ -131,98 +101,38 @@ async function handleRegister() {
 
       <!-- Form -->
       <form v-else @submit.prevent="handleRegister" class="space-y-4">
-        <div
-          v-if="error"
-          class="p-3 rounded-lg bg-destructive/10 text-destructive text-sm"
-        >
+        <div v-if="error" class="p-4 rounded-lg bg-red-50 text-red-600 text-sm border border-red-200">
           {{ error }}
         </div>
 
         <div class="space-y-2">
-          <UiLabel for="fullName"
-            >Nama Lengkap <span class="text-destructive">*</span></UiLabel
-          >
-          <UiInput
-            id="fullName"
-            v-model="form.fullName"
-            placeholder="Masukkan nama lengkap"
-          />
-          <p
-            v-if="showErrors && errors.fullName"
-            class="text-xs text-destructive"
-          >
-            {{ errors.fullName }}
-          </p>
+          <UiLabel for="fullName">Nama Lengkap</UiLabel>
+          <UiInput id="fullName" v-model="form.fullName" placeholder="Contoh: Budi Taruna" />
+          <p v-if="showErrors && errors.fullName" class="text-xs text-red-500">{{ errors.fullName }}</p>
         </div>
 
         <div class="space-y-2">
-          <UiLabel for="email"
-            >Email <span class="text-destructive">*</span></UiLabel
-          >
-          <UiInput
-            id="email"
-            v-model="form.email"
-            type="email"
-            placeholder="email@example.com"
-          />
-          <p v-if="showErrors && errors.email" class="text-xs text-destructive">
-            {{ errors.email }}
-          </p>
+          <UiLabel for="email">Email</UiLabel>
+          <UiInput id="email" v-model="form.email" type="email" placeholder="nama@email.com" />
+          <p v-if="showErrors && errors.email" class="text-xs text-red-500">{{ errors.email }}</p>
         </div>
 
         <div class="space-y-2">
-          <UiLabel for="password"
-            >Password <span class="text-destructive">*</span></UiLabel
-          >
-          <UiInput
-            id="password"
-            v-model="form.password"
-            type="password"
-            placeholder="Minimal 6 karakter"
-          />
-          <p
-            v-if="showErrors && errors.password"
-            class="text-xs text-destructive"
-          >
-            {{ errors.password }}
-          </p>
+          <UiLabel for="password">Password</UiLabel>
+          <UiInputPassword id="password" v-model="form.password" placeholder="Minimal 6 karakter" />
+          <p v-if="showErrors && errors.password" class="text-xs text-red-500">{{ errors.password }}</p>
         </div>
 
         <div class="space-y-2">
-          <UiLabel for="confirmPassword"
-            >Konfirmasi Password
-            <span class="text-destructive">*</span></UiLabel
-          >
-          <UiInput
-            id="confirmPassword"
-            v-model="form.confirmPassword"
-            type="password"
-            placeholder="Ulangi password"
-          />
-          <p
-            v-if="showErrors && errors.confirmPassword"
-            class="text-xs text-destructive"
-          >
-            {{ errors.confirmPassword }}
-          </p>
+          <UiLabel for="confirmPassword">Konfirmasi Password</UiLabel>
+          <UiInputPassword id="confirmPassword" v-model="form.confirmPassword" placeholder="Ulangi password" />
+          <p v-if="showErrors && errors.confirmPassword" class="text-xs text-red-500">{{ errors.confirmPassword }}</p>
         </div>
 
-        <UiButton type="submit" :disabled="loading" class="w-full">
-          <span v-if="loading">Memproses...</span>
-          <span v-else>Daftar</span>
+        <UiButton type="submit" :disabled="loading" class="w-full bg-forest-600 hover:bg-forest-700 text-white">
+          {{ loading ? "Memproses..." : "Daftar Akun" }}
         </UiButton>
       </form>
-
-      <!-- Footer -->
-      <p class="text-center text-sm text-muted-foreground mt-6">
-        Sudah punya akun?
-        <NuxtLink
-          to="/login"
-          class="text-primary font-medium hover:text-primary/80"
-        >
-          Login
-        </NuxtLink>
-      </p>
     </div>
   </div>
 </template>

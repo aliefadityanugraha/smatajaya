@@ -1,5 +1,6 @@
 export const APP_NAME = 'PPDB SMAN 5 Taruna Brawijaya'
 export const APP_YEAR = new Date().getFullYear()
+export const ACADEMIC_YEAR = '2026/2027'
 
 export const NAVBAR_LINKS = [
   { label: 'Beranda', to: '/' },

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useSupabaseClient } from "#imports";
+import { ACADEMIC_YEAR } from "~/utils/constants";
 
 const supabase = useSupabaseClient();
 
@@ -60,7 +61,7 @@ onMounted(async () => {
         <h1
           class="text-4xl md:text-5xl font-bold mb-6 leading-tight fade-in-up"
         >
-          Penerimaan Taruna Baru <br />Tahun Pelajaran 2026/2027
+          Penerimaan Taruna Baru <br />Tahun Pelajaran {{ ACADEMIC_YEAR }}
         </h1>
 
         <p class="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto">
@@ -77,7 +78,7 @@ onMounted(async () => {
         >
           <NuxtLink
             to="/register"
-            class="inline-flex items-center justify-center rounded-lg bg-white text-primary px-8 py-3.5 text-sm font-semibold hover:bg-white/90 transition-colors shadow-lg"
+            class="inline-flex items-center justify-center rounded-lg bg-yellow-400 text-forest-900 px-8 py-3.5 text-sm font-bold hover:bg-yellow-500 transition-colors shadow-lg"
           >
             Daftar Sekarang
           </NuxtLink>

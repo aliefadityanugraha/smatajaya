@@ -1,12 +1,6 @@
-export function useFormat() {
-  const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
+import { formatDate } from '~/utils/helpers'
 
+export function useFormat() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',

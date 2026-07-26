@@ -79,10 +79,9 @@ async function handleUpdatePassword() {
 
         <div class="space-y-2">
           <UiLabel for="newPassword">Password Baru</UiLabel>
-          <UiInput
+          <UiInputPassword
             id="newPassword"
             v-model="newPassword"
-            type="password"
             placeholder="Minimal 6 karakter"
             required
           />
@@ -90,10 +89,9 @@ async function handleUpdatePassword() {
 
         <div class="space-y-2">
           <UiLabel for="confirmPassword">Konfirmasi Password</UiLabel>
-          <UiInput
+          <UiInputPassword
             id="confirmPassword"
             v-model="confirmPassword"
-            type="password"
             placeholder="Ulangi password baru"
             required
           />

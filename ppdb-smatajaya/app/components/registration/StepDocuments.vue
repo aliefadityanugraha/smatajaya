@@ -10,6 +10,7 @@ const emit = defineEmits<{
 
 const registrationStore = useRegistrationStore()
 const uploading = ref<Record<string, boolean>>({})
+const uploadProgress = ref<Record<string, number>>({})
 const uploadErrors = ref<Record<string, string>>({})
 const documents = ref<Record<string, { file_path: string; file_name: string; is_uploaded: boolean }>>({})
 
@@ -89,21 +90,50 @@ async function handleUpload(event: Event, docType: string) {
   }
 
   uploading.value[docType] = true
+  uploadProgress.value[docType] = 0
   uploadErrors.value[docType] = ''
 
-  const result = await registrationStore.uploadDocument(file, docType)
-  uploading.value[docType] = false
+  const progressInterval = setInterval(() => {
+    if (uploadProgress.value[docType] < 90) {
+      uploadProgress.value[docType] += Math.random() * 15
+    }
+  }, 200)
 
-  if (result?.error) {
-    uploadErrors.value[docType] = result.error
-    return
+  try {
+    const result = await registrationStore.uploadDocument(file, docType)
+
+    clearInterval(progressInterval)
+    uploadProgress.value[docType] = 100
+
+    if (!result) {
+      uploadErrors.value[docType] = 'Gagal mengunggah dokumen. Silakan coba lagi.'
+      setTimeout(() => {
+        uploading.value[docType] = false
+        uploadProgress.value[docType] = 0
+      }, 300)
+      input.value = ''
+      return
+    }
+
+    setTimeout(() => {
+      uploading.value[docType] = false
+      uploadProgress.value[docType] = 0
+    }, 300)
+
+    documents.value[docType] = {
+      file_path: typeof result === 'string' ? result : file.name,
+      file_name: file.name,
+      is_uploaded: true,
+    }
+  }
+  catch {
+    clearInterval(progressInterval)
+    uploadErrors.value[docType] = 'Gagal mengunggah dokumen. Silakan coba lagi.'
+    uploading.value[docType] = false
+    uploadProgress.value[docType] = 0
   }
 
-  documents.value[docType] = {
-    file_path: result.path || file.name,
-    file_name: file.name,
-    is_uploaded: true,
-  }
+  input.value = ''
 }
 
 function removeFile(docType: string) {
@@ -145,7 +175,7 @@ const missingDocCount = computed(() => {
         class="border rounded-2xl p-5"
       >
         <div class="flex items-start justify-between gap-4">
-          <div class="flex-1">
+          <div class="flex-1 min-w-0">
             <p class="text-sm font-medium mb-1">
               {{ getDocLabel(docType) }}
               <span v-if="isOptional(docType)" class="text-xs text-muted-foreground font-normal ml-1">(Opsional)</span>
@@ -157,7 +187,22 @@ const missingDocCount = computed(() => {
               Format: PDF, maks. 5MB
             </p>
 
-            <template v-if="getDocUrl(docType)">
+            <!-- Upload Progress Bar -->
+            <div v-if="uploading[docType]" class="mb-3">
+              <div class="flex items-center gap-2 mb-1.5">
+                <div class="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span class="text-xs font-medium text-primary">Mengunggah...</span>
+                <span class="text-xs text-muted-foreground ml-auto">{{ Math.round(uploadProgress[docType] || 0) }}%</span>
+              </div>
+              <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+                  :style="{ width: `${Math.min(uploadProgress[docType] || 0, 100)}%` }"
+                />
+              </div>
+            </div>
+
+            <template v-if="getDocUrl(docType) && !uploading[docType]">
               <div class="flex items-center gap-2">
                 <template v-if="docType === 'pas_foto'">
                   <img :src="getDocUrl(docType)!" alt="Pas Foto" class="h-16 w-12 object-cover rounded border" />
@@ -185,12 +230,12 @@ const missingDocCount = computed(() => {
               </div>
             </template>
 
-            <template v-else>
+            <template v-else-if="!uploading[docType]">
               <p class="text-xs text-muted-foreground">Belum diupload</p>
             </template>
           </div>
 
-          <div v-if="!registrationStore.isSubmitted" class="text-right">
+          <div v-if="!registrationStore.isSubmitted" class="text-right shrink-0">
             <input
               :id="`file-${docType}`"
               type="file"
@@ -228,10 +273,25 @@ const missingDocCount = computed(() => {
         class="border rounded-2xl p-5"
       >
         <div class="flex items-start justify-between gap-4">
-          <div class="flex-1">
+          <div class="flex-1 min-w-0">
             <p class="text-sm font-medium mb-1">{{ getDocLabel(docType) }}</p>
 
-            <template v-if="getDocUrl(docType)">
+            <!-- Upload Progress Bar -->
+            <div v-if="uploading[docType]" class="mb-3">
+              <div class="flex items-center gap-2 mb-1.5">
+                <div class="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span class="text-xs font-medium text-primary">Mengunggah...</span>
+                <span class="text-xs text-muted-foreground ml-auto">{{ Math.round(uploadProgress[docType] || 0) }}%</span>
+              </div>
+              <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+                  :style="{ width: `${Math.min(uploadProgress[docType] || 0, 100)}%` }"
+                />
+              </div>
+            </div>
+
+            <template v-if="getDocUrl(docType) && !uploading[docType]">
               <div class="flex items-center gap-2">
                 <div class="flex items-center gap-2 text-sm text-green-600">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -254,12 +314,12 @@ const missingDocCount = computed(() => {
               </div>
             </template>
 
-            <template v-else>
+            <template v-else-if="!uploading[docType]">
               <p class="text-xs text-muted-foreground">Belum diupload</p>
             </template>
           </div>
 
-          <div v-if="!registrationStore.isSubmitted" class="text-right">
+          <div v-if="!registrationStore.isSubmitted" class="text-right shrink-0">
             <input
               :id="`file-${docType}`"
               type="file"

@@ -120,11 +120,10 @@ async function handleLogin() {
               Lupa password?
             </NuxtLink>
           </div>
-          <UiInput
+          <UiInputPassword
             id="password"
             v-model="form.password"
-            type="password"
-            placeholder="••••••••"
+            placeholder="Masukkan password"
           />
           <p
             v-if="showErrors && errors.password"

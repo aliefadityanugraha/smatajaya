@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, computed, nextTick } from 'vue'
 import { useDebounceFn } from '@vueuse/shared'
 import { useRegistrationStore } from '~/stores/registration'
 import { SUBJECT_LABELS, type Semester, type Subject } from '~/types'
@@ -10,15 +10,17 @@ const emit = defineEmits<{
 }>()
 
 const registrationStore = useRegistrationStore()
+const isInitialized = ref(false)
 
 const subjects: Subject[] = ['bahasa_indonesia', 'bahasa_inggris', 'ppkn', 'matematika', 'ipa', 'ips']
 const semesters: Semester[] = [1, 2, 3, 4]
+const activeTab = ref<Semester>(1)
 
 const grades = ref<Record<string, string>>({})
 const gradeErrors = ref<Record<string, string>>({})
 const showErrors = ref(false)
 
-onMounted(() => {
+onMounted(async () => {
   for (const sem of semesters) {
     for (const sub of subjects) {
       const key = `${sem}-${sub}`
@@ -28,6 +30,8 @@ onMounted(() => {
       grades.value[key] = existing?.score?.toString() || ''
     }
   }
+  await nextTick()
+  isInitialized.value = true
 })
 
 const filledCount = computed(() => {
@@ -35,6 +39,12 @@ const filledCount = computed(() => {
 })
 
 const hasAnyGrade = computed(() => filledCount.value > 0)
+
+const semesterFilledCount = computed(() => {
+  return (sem: Semester) => {
+    return subjects.filter(sub => grades.value[`${sem}-${sub}`]?.trim() !== '').length
+  }
+})
 
 function validate(): boolean {
   const e: Record<string, string> = {}
@@ -101,6 +111,7 @@ const debouncedSave = useDebounceFn(async () => {
 }, 1000)
 
 watch(grades, () => {
+  if (!isInitialized.value) return
   debouncedSave()
 }, { deep: true })
 </script>
@@ -112,42 +123,85 @@ watch(grades, () => {
       <p class="text-sm text-muted-foreground">Masukkan nilai rapor semester 1, 2, 3, dan 4 (minimal 1 nilai terisi)</p>
     </div>
 
-    <div class="space-y-6">
-      <div v-for="semester in semesters" :key="semester" class="space-y-3">
-        <h3 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Semester {{ semester }}
-        </h3>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div
-            v-for="subject in subjects"
-            :key="`${semester}-${subject}`"
-            class="space-y-2"
+    <!-- Semester Tabs -->
+    <div class="border-b border-border">
+      <div class="flex gap-1 -mb-px overflow-x-auto">
+        <button
+          v-for="sem in semesters"
+          :key="sem"
+          :class="[
+            'relative px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors rounded-t-lg',
+            activeTab === sem
+              ? 'text-primary bg-card border border-border border-b-transparent -mb-px z-10'
+              : 'text-muted-foreground hover:text-foreground',
+          ]"
+          @click="activeTab = sem"
+        >
+          <span>Semester {{ sem }}</span>
+          <span
+            :class="[
+              'ml-1.5 inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-[10px] font-semibold',
+              semesterFilledCount(sem) === 6
+                ? 'bg-green-100 text-green-700'
+                : semesterFilledCount(sem) > 0
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : 'bg-muted text-muted-foreground',
+            ]"
           >
-            <UiLabel :for="`grade-${semester}-${subject}`" class="text-xs">
-              {{ SUBJECT_LABELS[subject] }}
-            </UiLabel>
-            <UiInput
-              :id="`grade-${semester}-${subject}`"
-              v-model="grades[`${semester}-${subject}`]"
-              type="number"
-              min="0"
-              max="100"
-              step="0.01"
-              placeholder="0 - 100"
-              :class="showErrors && gradeErrors[`${semester}-${subject}`] ? 'border-red-500 focus-visible:ring-red-500' : ''"
-            />
-            <p v-if="showErrors && gradeErrors[`${semester}-${subject}`]" class="text-xs text-destructive">
-              {{ gradeErrors[`${semester}-${subject}`] }}
-            </p>
-          </div>
-        </div>
+            {{ semesterFilledCount(sem) }}/6
+          </span>
+        </button>
       </div>
     </div>
 
-    <!-- Filled count -->
-    <div class="text-sm text-muted-foreground">
-      Terisi: <span class="font-semibold" :class="hasAnyGrade ? 'text-green-600' : 'text-red-600'">{{ filledCount }}</span> / 24 kolom
+    <!-- Tab Content -->
+    <div class="bg-card border rounded-2xl p-5">
+      <h3 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+        Semester {{ activeTab }}
+      </h3>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div
+          v-for="subject in subjects"
+          :key="`${activeTab}-${subject}`"
+          class="space-y-2"
+        >
+          <UiLabel :for="`grade-${activeTab}-${subject}`" class="text-xs">
+            {{ SUBJECT_LABELS[subject] }}
+          </UiLabel>
+          <UiInput
+            :id="`grade-${activeTab}-${subject}`"
+            v-model="grades[`${activeTab}-${subject}`]"
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            placeholder="0 - 100"
+            :class="showErrors && gradeErrors[`${activeTab}-${subject}`] ? 'border-red-500 focus-visible:ring-red-500' : ''"
+          />
+          <p v-if="showErrors && gradeErrors[`${activeTab}-${subject}`]" class="text-xs text-destructive">
+            {{ gradeErrors[`${activeTab}-${subject}`] }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Nav -->
+      <div class="flex items-center justify-between mt-6 pt-4 border-t border-border">
+        <div class="flex gap-1.5">
+          <button
+            v-for="sem in semesters"
+            :key="sem"
+            :class="[
+              'h-2 rounded-full transition-all',
+              sem === activeTab ? 'w-6 bg-primary' : semesterFilledCount(sem) === 6 ? 'w-2 bg-green-400' : semesterFilledCount(sem) > 0 ? 'w-2 bg-yellow-400' : 'w-2 bg-muted-foreground/30',
+            ]"
+            @click="activeTab = sem"
+          />
+        </div>
+        <span class="text-xs text-muted-foreground">
+          {{ filledCount }}/24 kolom terisi
+        </span>
+      </div>
     </div>
 
     <!-- Validation Warning -->
