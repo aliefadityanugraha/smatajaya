@@ -1,5 +1,4 @@
 import tailwindcss from '@tailwindcss/vite'
-import { Plugin } from 'vite'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
@@ -44,7 +43,4 @@ export default defineNuxtConfig({
 
   routeRules: {},
 })
-function defineNuxtConfig(arg0: { compatibilityDate: string; ssr: boolean; devtools: { enabled: boolean }; vite: { plugins: Plugin<any>[][] }; app: { head: { htmlAttrs: { lang: string }; charset: string; viewport: string; title: string; meta: ({ name: string; content: string } | { property: string; content: string })[]; link: ({ rel: string; type: string; href: string } | { rel: string; href: string } | { rel: string; href: string; crossorigin: string })[] }; pageTransition: { name: string; mode: string } }; css: string[]; routeRules: {} }) {
-  throw new Error('Function not implemented.')
-}
 
