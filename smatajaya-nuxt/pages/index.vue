@@ -1,58 +1,60 @@
 <script setup>
-const siteUrl = 'https://smatarunakediri.sch.id'
-const ogImage = `${siteUrl}/Smata-Jaya-Foto-Utama-2.png`
+const siteUrl = "https://smatarunakediri.sch.id";
+const ogImage = `${siteUrl}/Smata-Jaya-Foto-Utama-2.png`;
 
 useSeoMeta({
-  title: 'Beranda | SMAN 5 Taruna Brawijaya Jawa Timur',
-  description: 'Website resmi SMAN 5 Taruna Brawijaya Jawa Timur - Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik.',
-  ogTitle: 'Beranda | SMAN 5 Taruna Brawijaya Jawa Timur',
-  ogDescription: 'Website resmi SMAN 5 Taruna Brawijaya Jawa Timur - Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik.',
+  title: "Beranda | SMAN 5 Taruna Brawijaya Jawa Timur",
+  description:
+    "Website resmi SMAN 5 Taruna Brawijaya Jawa Timur - Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik.",
+  ogTitle: "Beranda | SMAN 5 Taruna Brawijaya Jawa Timur",
+  ogDescription:
+    "Website resmi SMAN 5 Taruna Brawijaya Jawa Timur - Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik.",
   ogImage,
   ogUrl: siteUrl,
-  twitterTitle: 'Beranda | SMAN 5 Taruna Brawijaya Jawa Timur',
-  twitterDescription: 'Website resmi SMAN 5 Taruna Brawijaya Jawa Timur - Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik.',
+  twitterTitle: "Beranda | SMAN 5 Taruna Brawijaya Jawa Timur",
+  twitterDescription:
+    "Website resmi SMAN 5 Taruna Brawijaya Jawa Timur - Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik.",
   twitterImage: ogImage,
-})
+});
 
 useHead({
-  link: [{ rel: 'canonical', href: siteUrl }],
+  link: [{ rel: "canonical", href: siteUrl }],
   script: [
     {
-      type: 'application/ld+json',
+      type: "application/ld+json",
       innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'School',
-        name: 'SMAN 5 Taruna Brawijaya Jawa Timur',
-        alternateName: 'Smata Jaya',
+        "@context": "https://schema.org",
+        "@type": "School",
+        name: "SMAN 5 Taruna Brawijaya Jawa Timur",
+        alternateName: "Smata Jaya",
         url: siteUrl,
         logo: `${siteUrl}/logo.png`,
-        description: 'Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik, kerjasama Pemerintah Provinsi Jawa Timur dengan Kodam V/Brawijaya.',
+        description:
+          "Sekolah berasrama berbasis kedisiplinan dan keunggulan akademik, kerjasama Pemerintah Provinsi Jawa Timur dengan Kodam V/Brawijaya.",
         address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'Jl. Selomangleng No. 2',
-          addressLocality: 'Kota Kediri',
-          addressRegion: 'Jawa Timur',
-          postalCode: '64126',
-          addressCountry: 'ID',
+          "@type": "PostalAddress",
+          streetAddress: "Jl. Selomangleng No. 2",
+          addressLocality: "Kota Kediri",
+          addressRegion: "Jawa Timur",
+          postalCode: "64126",
+          addressCountry: "ID",
         },
-        telephone: '+62-354-XXXXXXX',
-        email: 'info@smatarunakediri.sch.id',
-        sameAs: [
-          'https://www.instagram.com/smatarunakediri/',
-        ],
+        telephone: "+62-354-XXXXXXX",
+        email: "info@smatarunakediri.sch.id",
+        sameAs: ["https://www.instagram.com/smatarunakediri/"],
         geo: {
-          '@type': 'GeoCoordinates',
+          "@type": "GeoCoordinates",
           latitude: -7.82,
           longitude: 112.0,
         },
         founder: {
-          '@type': 'Organization',
-          name: 'Pemerintah Provinsi Jawa Timur & Kodam V/Brawijaya',
+          "@type": "Organization",
+          name: "Pemerintah Provinsi Jawa Timur & Kodam V/Brawijaya",
         },
       }),
     },
   ],
-})
+});
 
 definePageMeta({ title: "Beranda" });
 
@@ -268,10 +270,10 @@ try {
                 </svg>
               </NuxtLink>
               <NuxtLink
-                to="/ppdb"
+                to="/pentab"
                 class="inline-flex items-center gap-2 border border-white/40 text-white hover:bg-white/10 px-6 py-2.5 rounded-lg font-bold text-sm transition-all"
               >
-                PPDB 2025/2026
+                PENTAB 2026/2027
                 <svg
                   class="w-4 h-4"
                   fill="none"
